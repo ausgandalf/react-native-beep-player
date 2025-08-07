@@ -13,7 +13,8 @@
     "ios",
     "android",
     "package.json",
-    "beep.wav"
+    "beep.wav",
+    "README.md"
   ],
   "keywords": [
     "react-native",
