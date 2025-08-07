@@ -1,0 +1,73 @@
+import Foundation
+import AVFoundation
+
+@objc(BeepPlayer)
+class BeepPlayer: NSObject {
+  var engine: AVAudioEngine!
+  var player: AVAudioPlayerNode!
+  var buffer: AVAudioPCMBuffer!
+  var beepInterval: Double = 0.5
+  var sampleRate: Double = 44100.0
+  var lookAheadSeconds: Double = 5.0
+  var isPlaying = false
+
+  @objc func start(_ bpm: NSNumber, beepFile: String) {
+    stop()
+
+    guard let url = Bundle.main.url(forResource: beepFile, withExtension: nil) else {
+      print("Beep file not found")
+      return
+    }
+
+    let file = try! AVAudioFile(forReading: url)
+    sampleRate = file.fileFormat.sampleRate
+    beepInterval = 60.0 / bpm.doubleValue
+
+    buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat,
+                              frameCapacity: AVAudioFrameCount(file.length))!
+    try! file.read(into: buffer!)
+
+    engine = AVAudioEngine()
+    player = AVAudioPlayerNode()
+    engine.attach(player)
+    engine.connect(player, to: engine.mainMixerNode, format: file.processingFormat)
+    try! engine.start()
+
+    isPlaying = true
+    player.play()
+
+    scheduleBeepLoop()
+  }
+
+  func scheduleBeepLoop() {
+    guard isPlaying else { return }
+
+    let currentTime = player.lastRenderTime!
+    let playerTime = player.playerTime(forNodeTime: currentTime)!
+    let timeAhead = Double(playerTime.sampleTime) / sampleRate
+
+    var nextBeepTime = timeAhead
+    while nextBeepTime < timeAhead + lookAheadSeconds {
+      player.scheduleBuffer(
+        buffer,
+        at: AVAudioTime(sampleTime: AVAudioFramePosition(nextBeepTime * sampleRate),
+                        atRate: sampleRate),
+        options: [],
+        completionHandler: nil
+      )
+      nextBeepTime += beepInterval
+    }
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+      self.scheduleBeepLoop()
+    }
+  }
+
+  @objc func stop() {
+    isPlaying = false
+    player?.stop()
+    engine?.stop()
+    engine = nil
+    player = nil
+  }
+}
