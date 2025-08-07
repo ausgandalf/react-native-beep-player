@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description  = <<-DESC
                     Plays beep sounds continuously with sample-accurate scheduling on iOS and Android.
                    DESC
-  s.homepage     = "https://github.com/yourusername/react-native-beep-player"
+  s.homepage     = "https://github.com/ausgandalf/react-native-beep-player"
   s.license      = { :type => "MIT" }
   s.author       = { "Jessee Beecham" => "jsbchm0320@gmail.com" }
   s.platform     = :ios, "10.0"
