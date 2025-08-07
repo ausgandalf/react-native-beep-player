@@ -3,7 +3,7 @@ import AVFoundation
 import React
 
 @objc(BeepPlayer)
-class BeepPlayer: NSObject, RCTBridgeModule {
+class BeepPlayer: NSObject {
     static func moduleName() -> String! {
         return "BeepPlayer"
     }
