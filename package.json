@@ -5,5 +5,7 @@
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-native": ">=0.60.0"
-  }
+  },
+  "files": ["index.js", "ios", "android", "package.json", "beep.wav"],
+  "keywords": ["react-native", "beep", "audio", "metronome"]
 }
