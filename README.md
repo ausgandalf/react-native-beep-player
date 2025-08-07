@@ -39,6 +39,15 @@ Start a beep loop at a specific BPM:
 // Start beep loop at 120 BPM
 BeepPlayer.start(120, 'beep.wav');
 ```
+### Mute/Unmute
+
+Toggle mute state while keeping the beep loop running:
+
+```javascript
+// Stop beep loop
+BeepPlayer.mute(true);
+BeepPlayer.mute(false);
+```
 
 ### Stop Beep Loop
 
