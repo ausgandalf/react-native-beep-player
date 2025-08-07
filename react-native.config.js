@@ -10,6 +10,7 @@ module.exports = {
         },
         ios: {
           podspecPath: './react-native-beep-player.podspec',
+          sourceDir: './ios',
         },
       },
     },
