@@ -2,12 +2,14 @@
   "name": "react-native-beep-player",
   "version": "1.0.2",
   "main": "index.js",
+  "types": "index.d.ts",
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-native": ">=0.60.0"
   },
   "files": [
     "index.js",
+    "index.d.ts",
     "ios",
     "android",
     "package.json",
