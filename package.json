@@ -1,11 +1,22 @@
 {
   "name": "react-native-beep-player",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "index.js",
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-native": ">=0.60.0"
   },
-  "files": ["index.js", "ios", "android", "package.json", "beep.wav"],
-  "keywords": ["react-native", "beep", "audio", "metronome"]
+  "files": [
+    "index.js",
+    "ios",
+    "android",
+    "package.json",
+    "beep.wav"
+  ],
+  "keywords": [
+    "react-native",
+    "beep",
+    "audio",
+    "metronome"
+  ]
 }
