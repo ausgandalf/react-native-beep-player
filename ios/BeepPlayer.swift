@@ -7,6 +7,7 @@ class BeepPlayer: NSObject {
     static func moduleName() -> String! {
         return "BeepPlayer"
     }
+
     var engine: AVAudioEngine!
     var player: AVAudioPlayerNode!
     var buffer: AVAudioPCMBuffer!
@@ -18,67 +19,86 @@ class BeepPlayer: NSObject {
     var silenceBuffer: AVAudioPCMBuffer!
 
     @objc func start(_ bpm: NSNumber, beepFile: String) {
-        stop() // ensure clean start
+        print("🔔 BeepPlayer.start() called with bpm=\(bpm), beepFile=\(beepFile)")
+
+        stop()
 
         guard let url = Bundle.main.url(forResource: beepFile, withExtension: nil) else {
-            print("Beep file not found")
+            print("❌ Beep file not found in bundle: \(beepFile)")
             return
         }
 
-        let file = try! AVAudioFile(forReading: url)
-        sampleRate = file.fileFormat.sampleRate
-        beepInterval = 60.0 / bpm.doubleValue
+        print("📦 Found beep file at URL: \(url)")
 
-        // Load beep buffer
-        buffer = AVAudioPCMBuffer(
-            pcmFormat: file.processingFormat,
-            frameCapacity: AVAudioFrameCount(file.length)
-        )!
-        try! file.read(into: buffer!)
+        do {
+            let file = try AVAudioFile(forReading: url)
+            sampleRate = file.fileFormat.sampleRate
+            beepInterval = 60.0 / bpm.doubleValue
+            print("🎧 Loaded audio file: sampleRate=\(sampleRate), beepInterval=\(beepInterval)")
 
-        // Create silence buffer with same format & length
-        silenceBuffer = AVAudioPCMBuffer(
-            pcmFormat: buffer.format,
-            frameCapacity: buffer.frameCapacity
-        )!
-        silenceBuffer.frameLength = buffer.frameLength
-        memset(
-            silenceBuffer.int16ChannelData!.pointee,
-            0,
-            Int(silenceBuffer.frameLength) * MemoryLayout<Int16>.size
-        )
+            buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length))!
+            try file.read(into: buffer!)
+            print("✅ Beep buffer loaded: frameCapacity=\(buffer.frameCapacity), frameLength=\(buffer.frameLength)")
 
-        // Setup engine
-        engine = AVAudioEngine()
-        player = AVAudioPlayerNode()
-        engine.attach(player)
-        engine.connect(player, to: engine.mainMixerNode, format: file.processingFormat)
-        try! engine.start()
+            // Setup silence buffer
+            silenceBuffer = AVAudioPCMBuffer(pcmFormat: buffer.format, frameCapacity: buffer.frameCapacity)!
+            silenceBuffer.frameLength = buffer.frameLength
+            memset(silenceBuffer.int16ChannelData!.pointee, 0, Int(silenceBuffer.frameLength) * MemoryLayout<Int16>.size)
+            print("🔇 Silence buffer created")
 
-        isPlaying = true
-        player.play()
+            // Setup audio session
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            print("📱 AVAudioSession set to playback and activated")
 
-        scheduleBeepLoop()
+            // Setup engine
+            engine = AVAudioEngine()
+            player = AVAudioPlayerNode()
+            engine.attach(player)
+            engine.connect(player, to: engine.mainMixerNode, format: file.processingFormat)
+
+            try engine.start()
+            print("✅ AVAudioEngine started")
+
+            isPlaying = true
+            player.play()
+            print("▶️ AVAudioPlayerNode started playing")
+
+            scheduleBeepLoop()
+
+        } catch {
+            print("❌ Error setting up audio engine or file: \(error)")
+        }
     }
 
     func scheduleBeepLoop() {
-        guard isPlaying else { return }
+        guard isPlaying else {
+            print("⏹️ scheduleBeepLoop() called but isPlaying is false — exiting")
+            return
+        }
 
-        let currentTime = player.lastRenderTime!
-        let playerTime = player.playerTime(forNodeTime: currentTime)!
+        guard let currentTime = player.lastRenderTime,
+              let playerTime = player.playerTime(forNodeTime: currentTime) else {
+            print("⚠️ Could not get player time — skipping schedule")
+            return
+        }
+
         let timeAhead = Double(playerTime.sampleTime) / sampleRate
+        print("🕒 Current player time (in sec): \(timeAhead)")
 
         var nextBeepTime = timeAhead
         while nextBeepTime < timeAhead + lookAheadSeconds {
+            let scheduledTime = AVAudioTime(
+                sampleTime: AVAudioFramePosition(nextBeepTime * sampleRate),
+                atRate: sampleRate
+            )
             player.scheduleBuffer(
                 isMuted ? silenceBuffer : buffer,
-                at: AVAudioTime(
-                    sampleTime: AVAudioFramePosition(nextBeepTime * sampleRate),
-                    atRate: sampleRate
-                ),
+                at: scheduledTime,
                 options: [],
                 completionHandler: nil
             )
+            print("📅 Scheduled beep at sampleTime: \(scheduledTime.sampleTime)")
             nextBeepTime += beepInterval
         }
 
@@ -88,6 +108,7 @@ class BeepPlayer: NSObject {
     }
 
     @objc func stop() {
+        print("🛑 BeepPlayer.stop() called")
         isPlaying = false
         player?.stop()
         engine?.stop()
@@ -97,5 +118,6 @@ class BeepPlayer: NSObject {
 
     @objc func mute(_ value: Bool) {
         isMuted = value
+        print("🔇 BeepPlayer mute set to \(value)")
     }
 }
