@@ -15,6 +15,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,swift}"
   s.requires_arc = true
   s.swift_version = '5.0'
+  s.pod_target_xcconfig = { 'SWIFT_OBJC_BRIDGING_HEADER' => '$(PODS_TARGET_SRCROOT)/ios/BeepPlayer-Bridging-Header.h' }
 
   s.dependency 'React-Core'
 end

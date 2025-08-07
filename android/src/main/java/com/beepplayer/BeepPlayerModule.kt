@@ -1,13 +1,18 @@
 package com.beepplayer
 
 import com.facebook.react.bridge.*
+import com.facebook.react.module.annotations.ReactModule
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+@ReactModule(name = BeepPlayerModule.NAME)
 class BeepPlayerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+    companion object {
+        const val NAME = "BeepPlayer"
+    }
     private var audioTrack: AudioTrack? = null
     private var isPlaying = false
     private var beepData: ShortArray? = null
@@ -15,7 +20,7 @@ class BeepPlayerModule(reactContext: ReactApplicationContext) : ReactContextBase
     private val lookAheadSeconds = 5.0
     private var isMuted = false
 
-    override fun getName() = "BeepPlayer"
+    override fun getName() = NAME
 
     @ReactMethod
     fun start(bpm: Double, beepFile: String) {

@@ -1,8 +1,12 @@
 import Foundation
 import AVFoundation
+import React
 
 @objc(BeepPlayer)
-class BeepPlayer: NSObject {
+class BeepPlayer: NSObject, RCTBridgeModule {
+    static func moduleName() -> String! {
+        return "BeepPlayer"
+    }
     var engine: AVAudioEngine!
     var player: AVAudioPlayerNode!
     var buffer: AVAudioPCMBuffer!
