@@ -159,16 +159,36 @@ class BeepPlayer: NSObject {
 
     private func scheduleNextBeat() {
         guard isPlaying else { return }
-        let framesPerBeat = AVAudioFramePosition(beepInterval * sampleRate)
-        let beatTime = AVAudioTime(sampleTime: nextBeatSampleTime, atRate: sampleRate)
+        guard let buffer = isMuted ? silenceBuffer : buffer else { return }
 
-        let nextBuffer = isMuted ? silenceBuffer : buffer
-        player.scheduleBuffer(nextBuffer!, at: beatTime, options: []) { [weak self] in
-            self?.scheduleNextBeat()
+        let framesPerBeat = AVAudioFramePosition(beepInterval * sampleRate)
+
+        // Get current player time relative to engine clock
+        if let lastRenderTime = engine.outputNode.lastRenderTime,
+        let playerTime = player.playerTime(forNodeTime: lastRenderTime) {
+
+            let currentSampleTime = playerTime.sampleTime
+
+            // Calculate how many beats have elapsed
+            let beatsElapsed = Double(currentSampleTime) / (beepInterval * sampleRate)
+
+            // Find the *next* exact beat sample time
+            let nextBeatIndex = ceil(beatsElapsed)
+            nextBeatSampleTime = AVAudioFramePosition(nextBeatIndex * beepInterval * sampleRate)
+
+        } else {
+            // Fallback if timing unavailable — just increment
+            nextBeatSampleTime += framesPerBeat
         }
 
-        nextBeatSampleTime += framesPerBeat
+        let beatTime = AVAudioTime(sampleTime: nextBeatSampleTime, atRate: sampleRate)
+
+        // Schedule this beat
+        player.scheduleBuffer(buffer, at: beatTime, options: []) { [weak self] in
+            self?.scheduleNextBeat()
+        }
     }
+
 
     // MARK: - Audio Session
 
