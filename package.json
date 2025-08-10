@@ -1,7 +1,7 @@
 {
   "name": "react-native-beep-player",
   "description": "React Native Beep Player component for iOS and Android",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "main": "index.js",
   "types": "index.d.ts",
   "react-native": "index.js",
