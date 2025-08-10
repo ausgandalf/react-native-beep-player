@@ -71,23 +71,36 @@ class BeepPlayer: NSObject {
     // MARK: - File Handling
 
     private func findBeepFile(_ beepFile: String) -> URL? {
+        let fileManager = FileManager.default
+        
+        // 1. If the string is already an absolute path and exists, return it
+        let potentialPath = URL(fileURLWithPath: beepFile)
+        if fileManager.fileExists(atPath: potentialPath.path) {
+            return potentialPath
+        }
+        
+        // 2. Otherwise, try from main bundle
         if let mainBundleUrl = Bundle.main.url(forResource: beepFile, withExtension: nil) {
             return mainBundleUrl
         }
         if let nameWithoutExtension = beepFile.components(separatedBy: ".").first,
-           let mainBundleUrl = Bundle.main.url(forResource: nameWithoutExtension, withExtension: nil) {
+        let mainBundleUrl = Bundle.main.url(forResource: nameWithoutExtension, withExtension: nil) {
             return mainBundleUrl
         }
+        
+        // 3. Try from framework bundle
         let frameworkBundle = Bundle(for: type(of: self))
         if let frameworkUrl = frameworkBundle.url(forResource: beepFile, withExtension: nil) {
             return frameworkUrl
         }
         if let nameWithoutExtension = beepFile.components(separatedBy: ".").first,
-           let frameworkUrl = frameworkBundle.url(forResource: nameWithoutExtension, withExtension: nil) {
+        let frameworkUrl = frameworkBundle.url(forResource: nameWithoutExtension, withExtension: nil) {
             return frameworkUrl
         }
+        
         return nil
     }
+
 
     private func loadAudioFromFile(_ fileUrl: URL) {
         do {
