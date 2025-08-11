@@ -1,7 +1,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
-@interface RCT_EXTERN_MODULE(BeepPlayer, NSObject)
+@interface RCT_EXTERN_MODULE(BeepPlayer, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(start:(nonnull NSNumber *)bpm beepFile:(NSString *)beepFile)
 RCT_EXTERN_METHOD(stop)
